@@ -62,16 +62,15 @@ int Model_Load(const char *filename, const char *path_name)
 		for (DWORD j = 0; j < g_Model[i].MaterialCount; j++)
 		{
 			//色
-			pMat[j].MatD3D.Diffuse;
 			pMat[j].MatD3D.Diffuse.r = 1.0f;
 			pMat[j].MatD3D.Diffuse.g = 1.0f;
 			pMat[j].MatD3D.Diffuse.b = 1.0f;
-			pMat[j].MatD3D.Diffuse.a = 0.1f;
+			pMat[j].MatD3D.Diffuse.a = 1.0f;
 
 			pMat[j].MatD3D.Ambient.r = 1.0f;
 			pMat[j].MatD3D.Ambient.g = 1.0f;
 			pMat[j].MatD3D.Ambient.b = 1.0f;
-			pMat[j].MatD3D.Ambient.a = 0.1f;
+			pMat[j].MatD3D.Ambient.a = 1.0f;
 			//テクスチャの読み込み
 			if (pMat[j].pTextureFilename == NULL)
 			{

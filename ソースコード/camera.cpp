@@ -7,7 +7,7 @@
 //=====================================================
 //マクロ定義
 //=====================================================
-#define MOVE_SPEED (0.2f)	//移動量
+#define MOVE_SPEED (0.1f)	//移動量
 #define ROT_SPEED (0.02f)	//回転量
 
 //=====================================================
@@ -23,6 +23,7 @@ static float g_Fov = 0.0f;
 static D3DXVECTOR3 g_Move(0.0f, 0.0f, 0.0f);
 D3DXVECTOR3 vecDir(0.0f, 0.0f, 0.0f);
 static D3DXVECTOR3 g_LookAt(0.0f, 0.0f, 0.0f);
+static 	D3DXMATRIX g_mtxView;
 
 //=====================================================
 //初期化
@@ -166,10 +167,10 @@ void Camera_Set(void)
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
 	//ビュー変換
-	D3DXMATRIX mtxView;		//ビュー変換行列用変数
-	D3DXMatrixLookAtLH(&mtxView, &eye, &at, &up);	//行列計算
+	//ビュー変換行列用変数
+	D3DXMatrixLookAtLH(&g_mtxView, &eye, &at, &up);	//行列計算
 
-	pDevice->SetTransform(D3DTS_VIEW, &mtxView);
+	pDevice->SetTransform(D3DTS_VIEW, &g_mtxView);
 
 	//プロジェクション変換行列
 	D3DXMATRIX mtxProj;								//プロジェクション変換行列用変数
@@ -189,4 +190,12 @@ void Camera_Debug_Info(void)
 	DebugFont_Draw(0, 32 * 1, "at = %.02lf  %.02lf  %.02lf", g_Pos.x + g_vecFront.x, g_Pos.y + g_vecFront.y, g_Pos.z + g_vecFront.z);
 	//ズーム
 	DebugFont_Draw(0, 32 * 2, "zoom = %.02lf", g_Fov);
+}
+
+//=====================================================
+//ビュー変換座標取得
+//=====================================================
+D3DXMATRIX Camera_GetView(void)
+{
+	return g_mtxView;
 }
