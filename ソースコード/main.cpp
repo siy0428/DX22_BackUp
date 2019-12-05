@@ -70,6 +70,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	RegisterClass(&wc);		//オリジナルのクラス(ウィンドウ)を登録
 
 	const DWORD window_style = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX;		//ウィンドウ形式の定数化
+	//WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX
+	//WS_VISIBLE | WS_POPUP
 
 	RECT window_rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };		//幅と高さを計算する
 
@@ -93,6 +95,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		window_y,				//y
 		window_width,			//幅
 		window_height,			//高さ
+		//0, 
+		//0,
+		//desktop_width,
+		//desktop_height,
 		NULL,
 		NULL,
 		hInstance,
@@ -247,19 +253,18 @@ void Draw(void)
 	//デバイスの値の取得
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
-	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);					//アルファブレンドを有効化
-																			//D3DRS_ALPHABLENDENABLEで有効,TRUEで有効化
-	pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);	//等倍画像より小さい画像のピクセルを合わせる
-	pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);			//でかい画像のピクセルを合わせる
-	pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);			//2のべき乗のサイズの画像を用意して最適なサイズに切り替える
-	pDevice->SetSamplerState(0, D3DSAMP_MAXANISOTROPY, 2);
+	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);			//アルファブレンドを有効化
+																	//D3DRS_ALPHABLENDENABLEで有効,TRUEで有効化
+	pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);	//等倍画像より小さい画像のピクセルを合わせる
+	pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);	//でかい画像のピクセルを合わせる
+	pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);	//2のべき乗のサイズの画像を用意して最適なサイズに切り替える
 	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);			//D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA
-	pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);		//MODULATE掛け算
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);//D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA
+	pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);	//MODULATE掛け算
 	//ポリゴンのα値を無視しない設定
 
 	//画面クリア
-	pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_RGBA(0, 0, 255, 255), 1.0f, 0);//, 全体をクリアする場合はNULL。rect型の配列の要素数を入れるとその形にくり抜ける, TARGET(色)ZBUFFER(深度)のクリア, 
+	pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_RGBA(0, 255, 255, 255), 1.0f, 0);//, 全体をクリアする場合はNULL。rect型の配列の要素数を入れるとその形にくり抜ける, TARGET(色)ZBUFFER(深度)のクリア, 
 	//第三引数があれば色の指定, ZBUFFERがあれば0が手前、1が奥(一番うしろでクリア),0でok
 	pDevice->BeginScene();						//シーンの始まり
 	Debug_Begin();

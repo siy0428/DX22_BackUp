@@ -1,12 +1,12 @@
 #include <d3dx9.h>
+#include <string.h>
 #include "mydirectx.h"
 #include "texture.h"
-#include <string.h>
 
 //=====================================================
 //マクロ定義
 //=====================================================
-#define MODEL_MAX (8)	//モデルの最大数
+#define MODEL_MAX (32)	//モデルの最大数
 
 //=====================================================
 //構造体
@@ -57,6 +57,7 @@ int Model_Load(const char *filename, const char *path_name)
 			MessageBox(NULL, "モデルが読み込めませんでした", "エラー", MB_OK);
 			return -1;
 		}
+
 		D3DXMATERIAL *pMat = (D3DXMATERIAL*)g_Model[i].pMaterial->GetBufferPointer();
 		//各マテリアル情報の取得
 		for (DWORD j = 0; j < g_Model[i].MaterialCount; j++)
@@ -110,7 +111,7 @@ void Model_Uninit(void)
 //=====================================================
 //描画
 //=====================================================
-void Model_Draw(int modelId, D3DMATRIX mtxWorld)
+void Model_Draw(int modelId, D3DMATRIX mtxWorld, D3DXCOLOR color)
 {
 	//デバイスのポインタ取得
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
@@ -121,17 +122,16 @@ void Model_Draw(int modelId, D3DMATRIX mtxWorld)
 		//マテリアルの設定
 		if (g_Model[modelId].pTextureIds[i] < 0)	//テクスチャが貼られていない場合
 		{
+			pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+
 			//マテリアル設定
 			D3DMATERIAL9 mat = {};
-			mat.Diffuse.r = 1.0f;
-			mat.Diffuse.g = 1.0f;
-			mat.Diffuse.b = 1.0f;
-			mat.Diffuse.a = 1.0f;
+			mat.Diffuse.r = color.r;
+			mat.Diffuse.g = color.g;
+			mat.Diffuse.b = color.b;
+			mat.Diffuse.a = color.a;
 
-			mat.Ambient.r = 1.0f;
-			mat.Ambient.g = 1.0f;
-			mat.Ambient.b = 1.0f;
-			mat.Ambient.a = 1.0f;
+			mat.Ambient = mat.Diffuse;
 
 			pDevice->SetMaterial(&mat);
 		}

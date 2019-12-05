@@ -6,7 +6,6 @@
 //=======================================================================
 
 #include <d3d9.h>
-#include <d3dx9.h>
 #include <windows.h>
 #include "common.h"
 
@@ -54,15 +53,6 @@ bool MyDirectX_Init(HWND hwnd)
 		MessageBox(hwnd, "デバイスの取得に失敗しました", "失敗", MB_OK);
 		return false;
 	}
-
-	//ライティング設定
-	g_pDevice->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_MATERIAL);	//D3DMCS_COLOR1は頂点カラー, D3DMCS_MATERIALはモデルカラー
-	g_pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);					//(正規化, するかしないか)
-
-	//アンビエントライト
-	g_pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(167, 98, 100));
-	g_pDevice->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE, D3DMCS_MATERIAL);
-	//色 = アンビエントマテリアル * アンビエントライト + ディレクショナルライト * ディフューズマテリアル
 
 	return true;
 }

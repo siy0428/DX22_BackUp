@@ -13,7 +13,7 @@
 
 typedef struct TextureDate_tag
 {
-	char filename[FILENAME_MAX];
+	char filename[TEX_FILENAME_MAX];
 	int width;
 	int height;
 	LPDIRECT3DTEXTURE9 pTexture;
@@ -80,6 +80,7 @@ int Texture_Load()
 
 		//テクスチャの取得
 		D3DXCreateTextureFromFile(pDevice, g_TextureData[i].filename, &g_TextureData[i].pTexture);
+
 	}
 	return error_count;
 }

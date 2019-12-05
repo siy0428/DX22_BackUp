@@ -10,15 +10,23 @@
 #include "cube.h"
 #include "grid.h"
 #include "camera.h"
-#include "light.h"
+#include "debug_camera.h"
+#include "camera_generator.h"
+#include "mouse.h"
+#include "stone.h"
 #include "input.h"
-#include "horse.h"
-#include "model.h"
-#include "gradriel.h"
-#include "mesh_field.h"
-#include "mesh_wall.h"
-#include "mydirectx.h"
-#include "billboard.h"
+#include "goal.h"
+#include "power_gauge.h"
+#include "JoyInput.h"
+#include "number.h"
+#include "sprite.h"
+#include "result.h"
+#include "light.h"
+#include "mesh.h"
+#include "guide_line.h"
+#include "penguin.h"
+#include "OXAllocateHierarchy.h"
+#include "anime_test.h"
 
 //=====================================================
 //グローバル変数
@@ -26,7 +34,10 @@
 static SCENE g_Scene = SCENE_NONE;
 static bool g_TexLoad = true;
 static HWND g_hwnd = NULL;
-static bool g_j = true;
+//カメラ行列設定
+static D3DXVECTOR3 g_CameraRotate = D3DXVECTOR3(0.0f, 0.0f, 0.0f);		//45, 0, 0
+static D3DXVECTOR3 g_CameraPosition = D3DXVECTOR3(0.0f, 10.0f, -10.0f);
+static D3DXVECTOR3 g_CameraAt = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 //=====================================================
 //初期化
@@ -35,24 +46,30 @@ void Game_Init(HWND hwnd)
 {
 	g_Scene = SCENE_3D;
 	g_hwnd = hwnd;
-	Number_Init();
+	Goal_Init();	//Stoneより先に呼ばないと初回の距離が正確ではない
 	Score_Init();
 	Debug_Init();
 	Fade_init();
 	EfectInit();
 	Cube_Init();
-	Grid_Init();
+	//Grid_Init(10);
+	Mouse_Init();
 	Camera_Init();
-	Horse_Init();
-	Gradriel_Init();
-	MeshField_Init(8, 8, Texture_SetLoadFile("Texture\\f_mesh.jpg", 1300, 866));
-	MeshWall_Init(10, 5, Texture_SetLoadFile("Texture\\f_mesh.jpg", 1300, 866));
-	billboard_Init("Texture\\tree000.png");
+	dCamera_Init();
+	Stone_Init();
+	Pow_Gauge_Init();
+	InitDirectInput(hwnd);
+	Result_Init();
+	Light_Set();
+	Mesh_Init();
+	GuideLine_Init();
+	Anime_Test_Init();
 	if (g_TexLoad)
 	{
 		if (Texture_Load() > 0)
 		{
 			MessageBox(hwnd, "テクスチャが読み込めませんでした", "エラー", MB_OK);
+			exit(0);
 		}
 		g_TexLoad = false;
 	}
@@ -67,10 +84,16 @@ void Game_Uninit(void)
 	Fade_Uninit();
 	EfectUninit();
 	Grid_Uninit();
-	Cube_Uninit();
-	Model_Uninit();
-	MeshField_Uninit();
-	MeshWall_Uninit();
+	Mouse_Uninit();
+	Stone_Uninit();
+	Goal_Uninit();
+	Pow_Gauge_Uninit();
+	UninitDirectInput();
+	Result_Uninit();
+	Mesh_Uninit();
+	GuideLine_Uninit();
+	Anime_Test_Uninit();
+	Texture_Destroy();
 }
 
 //=====================================================
@@ -78,36 +101,19 @@ void Game_Uninit(void)
 //=====================================================
 void Game_Update(void)
 {
-	//デバイスのポインタ取得
-	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 	//キーボード更新
 	Keyboard_Update();
 
-	//ワイヤーフレーム切り替え
-	if (Keyboard_IsTrigger(DIK_J))
-	{
-		g_j = !g_j;
-	}
-	//ソリッド
-	if (g_j)
-	{
-		pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
-	}
-	//ワイヤーフレーム
-	else
-	{
-		pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
-	}
-
-	//シーン遷移
 	switch (g_Scene)
 	{
 	case SCENE_3D:
-		//カメラ設定
-		Camera_Set();
-		Light_Set();
-		Horse_Update();
-		Gradriel_Update();
+		Mouse_Update();
+		Stone_Update();
+		Camera_Change();
+		Goal_Update();
+		UpdateInput();
+		Result_Update();
+		GuideLine_Update();
 		break;
 	default:
 		break;
@@ -119,41 +125,23 @@ void Game_Update(void)
 //=====================================================
 void Game_Draw(void)
 {
-	D3DXMATRIX mtxWorld[2], mtxRot[2];
-	for (int i = 0; i < 2; i++)
-	{
-		D3DXMatrixIdentity(&mtxWorld[i]);
-		D3DXMatrixIdentity(&mtxRot[i]);
-	}
-
-	//移動
-	D3DXMatrixTranslation(&mtxWorld[0], 5.0f, 0.0f, 5.0f);
-	D3DXMatrixTranslation(&mtxWorld[1], -5.0f, 0.0f, 5.0f);
-
-	//回転
-	D3DXMatrixRotationY(&mtxRot[0], 45 * D3DX_PI / 180);
-	D3DXMatrixRotationY(&mtxRot[1], -45 * D3DX_PI / 180);
-
-	//行列合成
-	mtxWorld[0] = mtxRot[0] * mtxWorld[0];
-	mtxWorld[1] = mtxRot[1] * mtxWorld[1];
-
 	switch (g_Scene)
 	{
 	case SCENE_3D:
-		//カメラ情報出力
-		Camera_Debug_Info();
-		Grid_Draw();
-		//Cube_jyugyou();
-		//Horse_Draw();
-		//Gradriel_Draw();
-		//MeshField_Draw();
-		//MeshWall_Draw(mtxWorld[0]);
-		//MeshWall_Draw(mtxWorld[1]);
-		billboard_Draw();
+		//Grid_Draw();
+		Mouse_Draw();
+		Stone_Draw();
+		Goal_Draw();
+		Pow_Gauge_Draw();
+		Mesh_Draw();
+		GuideLine_Draw();
+		Result_Draw();
+		Anime_Test_Draw();
 		break;
 	}
 }
+//カメラ情報出力
+//Camera_Debug_Info(g_CameraPosition, g_CameraRotate, g_CameraAt);
 
 //=====================================================
 //シーンの切り替え

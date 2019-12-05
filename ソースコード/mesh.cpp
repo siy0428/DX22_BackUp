@@ -5,8 +5,8 @@
 //====================================================
 //マクロ定義
 //====================================================
-#define WIDTH  (20)	//1以上
-#define HEIGHT (20)	//1以上
+#define WIDTH  (100)	//1以上
+#define HEIGHT (100)	//1以上
 #define VERTEX_NUM ((WIDTH + 1) * (HEIGHT + 1))		//頂点数
 #define INDEX_NUM (VERTEX_NUM + (HEIGHT - 1) * (WIDTH + 1) + (HEIGHT - 1) * 2)	//インデックス数
 
@@ -25,7 +25,6 @@ typedef struct Mesh_Vertex_tag
 //====================================================
 //グローバル変数
 //====================================================
-static MeshVertex g_mesh_vertex[VERTEX_NUM];
 static LPDIRECT3DVERTEXBUFFER9 lpVtxBuf;   // 頂点バッファ
 static LPDIRECT3DINDEXBUFFER9 lpIdxBuf;    // 頂点インデックスバッファ
 static unsigned int g_tex = NULL;
@@ -38,24 +37,23 @@ void Mesh_Init(void)
 	//デバイスのポインタ取得
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
-	g_tex = Texture_SetLoadFile("Texture\\f_mesh.jpg", 1300, 866);
+	//g_tex = Texture_SetLoadFile("Texture\\f_mesh.jpg", 1300, 866);
+	g_tex = Texture_SetLoadFile("Texture\\ice_field.jpg", 612, 612);
+
+	pDevice->CreateVertexBuffer(sizeof(MeshVertex) * VERTEX_NUM, 0, (D3DFORMAT)FVF_MESH, D3DPOOL_MANAGED, &lpVtxBuf, NULL);
+
+	// ロック
+	MeshVertex *vbuf;
+	lpVtxBuf->Lock(0, 0, (void**)(&vbuf), D3DLOCK_NOSYSLOCK);
 
 	//頂点データ初期化
 	for (int i = 0; i < VERTEX_NUM; i++)
 	{
-		g_mesh_vertex[i].position = D3DXVECTOR3((FLOAT)(i % (WIDTH + 1)) + -WIDTH / 2, 0.0f, (FLOAT)(-i / (WIDTH + 1)) + HEIGHT / 2);
-		g_mesh_vertex[i].normal = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		g_mesh_vertex[i].color = D3DCOLOR_RGBA(255, 255, 255, 255);
-		g_mesh_vertex[i].UV = D3DXVECTOR2((FLOAT)(i % (WIDTH + 1)) + -WIDTH / 2, (FLOAT)(-i / (WIDTH + 1)) + HEIGHT / 2);
+		vbuf[i].position = D3DXVECTOR3((FLOAT)(i % (WIDTH + 1)) + -WIDTH / 2, 0.0f, (FLOAT)(-i / (WIDTH + 1)) + HEIGHT / 2);
+		vbuf[i].normal = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		vbuf[i].color = D3DCOLOR_RGBA(255, 255, 255, 255);
+		vbuf[i].UV = D3DXVECTOR2((FLOAT)(i % (WIDTH + 1)) + -WIDTH / 2, (FLOAT)(-i / (WIDTH + 1)) + HEIGHT / 2);
 	}
-
-	pDevice->CreateVertexBuffer(sizeof(g_mesh_vertex), 0, (D3DFORMAT)FVF_MESH, D3DPOOL_MANAGED, &lpVtxBuf, NULL);
-	MeshVertex *vbuf;
-
-	// ロック
-	lpVtxBuf->Lock(0, 0, (void**)(&vbuf), D3DLOCK_NOSYSLOCK);
-	// データの転送
-	memcpy(vbuf, g_mesh_vertex, sizeof(g_mesh_vertex));
 	// 解放
 	lpVtxBuf->Unlock();
 
@@ -116,6 +114,11 @@ void Mesh_Draw(void)
 {
 	//デバイスのポインタ取得
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
+
+	//直前の行列の初期化
+	D3DXMATRIX mtxWorld;
+	D3DXMatrixIdentity(&mtxWorld);
+	pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
 
 	//pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 	//ライティング設定
